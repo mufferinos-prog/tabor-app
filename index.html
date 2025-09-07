@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="cs">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tábor Helper</title>
+  <link rel="manifest" href="manifest.webmanifest?v=24">
+  <meta name="theme-color" content="#0ea5e9"/>
+  <link rel="icon" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/maskable-512.png">
+  <link rel="stylesheet" href="styles.v24.css">
+</head>
+<body>
+  <div id="updateBanner" class="banner" style="display:none">
+    Aktualizuji aplikaci… prosím **obnov** stránku ještě jednou.
+  </div>
+
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo">🏕️</span>
+      <div class="titles">
+        <h1>Tábor Helper</h1>
+        <small class="muted">rychlé nástroje pro vedoucí</small>
+      </div>
+    </div>
+    <div class="actions">
+      <button id="themeBtn" title="Přepnout téma">🌓</button>
+      <button id="installBtn" class="primary" hidden>Instalovat</button>
+    </div>
+  </header>
+
+  <nav class="tabs" role="tablist">
+    <button class="tab active" data-tab="games" aria-selected="true">🎲 Hry</button>
+    <button class="tab" data-tab="teams" aria-selected="false">👥 Týmy</button>
+    <button class="tab" data-tab="planner" aria-selected="false">🗓️ Plán dne</button>
+  </nav>
+
+  <main>
+    <!-- HRY -->
+    <section id="tab-games" class="tabpanel active">
+      <div class="grid two">
+        <div class="card">
+          <div class="card-head">
+            <h2>Všechny hry</h2>
+            <div class="row">
+              <select id="categoryFilter"></select>
+              <input id="searchInput" placeholder="Hledat podle názvu, poznámek…">
+              <button id="addGameBtn" class="ghost">+ Nová hra</button>
+            </div>
+          </div>
+          <ul id="gamesList" class="list"></ul>
+          <p id="emptyHint" class="muted" style="display:none;padding:8px">Žádné hry zatím nejsou. Přidej první přes „Nová hra“.</p>
+
+          <div class="card" style="margin-top:8px; border-style:dashed">
+            <div class="card-head"><h3>🔧 Nastavení &amp; data</h3></div>
+            <div class="row">
+              <button id="seedBtn" class="primary">Přidat balík her (80)</button>
+              <button id="exportBtn">Exportovat hry (JSON)</button>
+              <label class="row" style="gap:6px">Import (JSON)
+                <input id="importFile" type="file" accept=".json,application/json">
+              </label>
+              <button id="resetBtn" class="danger">Vymazat všechny hry</button>
+            </div>
+            <p class="muted">Balík doplní chybějící hry bez duplicit podle <em>názvu</em>.</p>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head">
+            <h2>Detail • vysvětlení & pomůcky</h2>
+            <div class="row">
+              <button id="randomBtn" class="primary">Losuj</button>
+              <button id="duplicateBtn" class="ghost" disabled>Zduplikovat</button>
+              <button id="deleteBtn" class="danger" disabled>Smazat</button>
+            </div>
+          </div>
+          <div id="gameDetail" class="game-detail empty">
+            <p class="muted">Vyber hru vlevo nebo ji losuj.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TÝMY -->
+    <section id="tab-teams" class="tabpanel">
+      <div class="grid two">
+        <div class="card">
+          <div class="card-head"><h2>Jména dětí</h2></div>
+          <label>Každé na nový řádek nebo oddělené čárkou</label>
+          <textarea id="playersText" rows="10" placeholder="Jméno…">Adam
+Bára
+Cyril
+Dana
+Eva
+Filip
+Gábina
+Honza</textarea>
+          <div class="row">
+            <label>Počet týmů <input id="teamsCount" type="number" min="2" max="12" value="2"></label>
+            <button id="genTeamsBtn" class="primary">Vygenerovat týmy</button>
+          </div>
+          <div class="muted">Data se ukládají automaticky.</div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h2>Losování týmů</h2></div>
+          <div id="teamsOut" class="teams"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PLÁN DNE -->
+    <section id="tab-planner" class="tabpanel">
+      <div class="card">
+        <div class="card-head">
+          <h2>Plán dne</h2>
+          <div class="row">
+            <input id="slotTime" placeholder="10:00">
+            <input id="slotTitle" placeholder="Název aktivity">
+            <button id="addSlotBtn" class="primary">Přidat položku</button>
+            <button id="clearPlanBtn" class="danger">Vymazat plán</button>
+          </div>
+        </div>
+        <ul id="planList" class="plan"></ul>
+        <div class="muted">Tip: klikni na čas pro rychlou úpravu. Plán je uložen lokálně.</div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Dialog: edit game -->
+  <dialog id="gameDialog">
+    <form method="dialog" id="gameForm">
+      <h3 id="dlgTitle">Nová hra</h3>
+      <div class="grid two">
+        <label>Název<input name="name" required></label>
+        <label>Kategorie<input name="category" placeholder="Venku, U ohně…"></label>
+      </div>
+      <div class="grid two">
+        <label>Délka (min)<input type="number" name="duration" min="1" value="10"></label>
+        <label>Pomůcky (čárkou)<input name="equipment" placeholder="míček, kužely…"></label>
+      </div>
+      <label>Vysvětlení / pravidla<textarea name="rules" rows="5" placeholder="Jak se to hraje…"></textarea></label>
+      <menu>
+        <button value="cancel">Zrušit</button>
+        <button id="saveGameBtn" value="default" class="primary">Uložit</button>
+      </menu>
+    </form>
+  </dialog>
+
+  <footer class="bottombar">
+    <span class="muted">PWA • offline • vše se pamatuje</span>
+    <button id="shareBtn">Sdílet</button>
+  </footer>
+
+  <script type="module" src="app.v24.js"></script>
+  <script>
+    // Register versioned SW and show banner during update
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', async () => {
+        const reg = await navigator.serviceWorker.register('service-worker-v24.js');
+        reg.addEventListener('updatefound', ()=>{ document.getElementById('updateBanner').style.display='block'; });
+      });
+    }
+  </script>
+</body>
+</html>
